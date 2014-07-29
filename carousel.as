@@ -70,8 +70,9 @@
 		 * 绑定事件
 		 */
 		private function addEvent():void{
-			mcRotationWarp.addEventListener(MouseEvent.CLICK,overWarpEvt);
+			//添加hover效果
 			mcRotationWarp.addEventListener(MouseEvent.MOUSE_OVER,overWarpEvt);
+			mcRotationWarp.addEventListener(MouseEvent.MOUSE_OUT,outWarpEvt);
 			//外层
 			for(var i = 0;i<12;i++){
 				var warp:MovieClip = mcRotationWarp['btnConstellation' + i];
@@ -88,30 +89,39 @@
 				mcRotationInner['btnConstellation' + k].buttonMode = true;
 				mcRotationInner['btnConstellation' + k].addEventListener(MouseEvent.CLICK,rotationInnerEvt);
 			}
-
-            //显示结果
-//            btnResultsMask.addEventListener(MouseEvent.CLICK,showResultsEvt);
 		}
 		
-		private function overWarpEvt(e:MouseEvent):void{
+		/**
+		 * 鼠标移动上去的效果
+		 */
+		private function overWarpEvt(e:MouseEvent):void {
+//			trace(mcRotationWarp.numChildren,'mcRotationWarp numChildren');
 			var target:Object = e.target;
 			for(var i = 0;i<12;i++){
-				if(target != mcRotationWarp['btnConstellation' + i]){
-					mcRotationWarp['btnConstellation' + i].gotoAndStop(2);
+				var btnItem:MovieClip = mcRotationWarp['btnConstellation' + i];
+				if(target != btnItem || ( result.constellation && btnItem == mcRotationWarp[result.constellation])){
+					btnItem.gotoAndStop(2);
 				}else{
-					target.gotoAndStop(1);
+					btnItem.gotoAndStop(1);
+					trace(btnItem.name)
 				}
 			}
 		}
 		
-		private function outWarpEvt(e:MouseEvent):void{
+		private function outWarpEvt(e:MouseEvent):void {
 			var target:Object = e.currentTarget;
-			for(var i = 0;i<12;i++){
-				if(target != mcRotationWarp['btnConstellation' + i]){
-					mcRotationWarp['btnConstellation' + i].gotoAndStop(1);
-				}else{
-					target.gotoAndStop(1);
+			//如果选中了星座
+			if(result.constellation){
+				for(var i = 0;i<12;i++){
+					//非选中的 全部取消
+					if(mcRotationWarp[result.constellation] != mcRotationWarp['btnConstellation' + i]){
+						mcRotationWarp['btnConstellation' + i].gotoAndStop(2);
+					}else{
+						//选中的高亮
+						mcRotationWarp[result.constellation].gotoAndStop(1);
+					}
 				}
+//				mcRotationWarp[result.constellation].gotoAndStop(1);
 			}
 		}
 
