@@ -2,6 +2,7 @@
 {
 	import com.greensock.TweenMax;
 	import com.greensock.easing.Back;
+	import com.greensock.easing.Linear;
 	import com.greensock.plugins.ShortRotationPlugin;
 	import com.greensock.plugins.TransformMatrixPlugin;
 	import com.greensock.plugins.TweenPlugin;
@@ -19,7 +20,7 @@
 	public class carousel extends MovieClip
 	{
 		//中心位置
-		private var centerPoint:Point;
+		private var centerPoint:Point;  
 		//旋转角度
 		private var rotation1:Number;		//用于保存外层星座旋转
 		private var rotation2:Number;		//用于中间血型旋转
@@ -28,6 +29,12 @@
         private var autoRunSpeed:Number;    //自动运行
 		private var autoInterval:uint		//用于保存interval状态
 		private var pan:MovieClip;			//底盘
+		private var time1:uint;
+		private var time2:uint;
+		private var time3:uint;
+		private var tween1:TweenMax;
+		private var tween2:TweenMax;
+		private var tween3:TweenMax;
 		
 		//构造函数
 		public function carousel()
@@ -76,9 +83,12 @@
 			//显示禁止按钮
 			mcOkdisable.visible = true;
 			btnOk.visible = false;
+			
+//			addEvent();
 			//事件绑定
-//			autoInterval = setInterval(autoRunEffect,1500)
-//			autoRunEffect();
+			autoInterval = setInterval(autoRunEffect,1500)
+			autoRunEffect();
+			mcBg.addEventListener(MouseEvent.MOUSE_OVER,disableAutoEffect);
 			mcRotationWarp.addEventListener(MouseEvent.MOUSE_OVER,disableAutoEffect);
 		}
 		
@@ -110,7 +120,7 @@
 			btnOk.addEventListener(MouseEvent.CLICK,showResultsEvt);
 		}
 		
-		/**
+		/** 
 		 * 鼠标移动上去的效果
 		 */
 		private function overWarpEvt(e:MouseEvent):void {
@@ -192,7 +202,12 @@
 						targetMc.gotoAndStop(1);
 					}
 				}
-				
+				//最后再次判断是否在指针处  防止转动时位置计算不准bug
+				//获取角度值
+				var angle:Number = getRotation(targetMc,centerPoint);
+				//获取需要旋转的角度
+				rotation1 += getTweenRotation(angle);
+				TweenMax.to(mcRotationWarp, 0.2, {shortRotation:{rotation:rotation1},ease:Linear.easeNone});
 			}});
 			
 			checkResults();
@@ -262,6 +277,7 @@
 			var mcX:Number = mc.x;
 			var mcY:Number = mc.y;
 			var target:Point = mc.localToGlobal(new Point(mcX, mcY));
+			trace(target);
 			//计算角度
 			var tmpx:Number=target.x - center.x;  
 			var tmpy:Number=center.y - target.y;  
@@ -330,7 +346,7 @@
 			
 			ExternalInterface.call("Pui.carousel.gameCompleteBefore",result);
 			
-			TweenMax.to(pan, 0.5, {delay:4, scaleX:1, scaleY:1, alpha:1,rotation:-360,onComplete:function(){
+			TweenMax.to(pan, 0.5, {delay:3, scaleX:1, scaleY:1, alpha:1,rotation:-360,onComplete:function(){
 				if (ExternalInterface.available){
 					try{ 
 						//通知页面已经完成 并输出结果
@@ -358,28 +374,33 @@
          * 默认动画
          */
 		private function autoRunEffect():void {
+			
 			var autoRunSpeed1 = Math.random() * 100;
 			var autoRunSpeed2 = -Math.random() * 100;
 			var autoRunSpeed3 = Math.random() * 100;
-            TweenMax.to(mcRotationWarp, 10, {rotation:autoRunSpeed1});
-            TweenMax.to(mcRotationMid, 12, {rotation:autoRunSpeed2});
-            TweenMax.to(mcRotationInner, 15, {rotation:autoRunSpeed3});
+			tween1 = TweenMax.to(mcRotationWarp, 10, {rotation:autoRunSpeed1,ease:Linear.easeNone});
+			tween2 = TweenMax.to(mcRotationMid, 12, {rotation:autoRunSpeed2,ease:Linear.easeNone});
+			tween3 = TweenMax.to(mcRotationInner, 15, {rotation:autoRunSpeed3,ease:Linear.easeNone});
         }
 
         /**
          * 停止自动旋转效果
          */
         private function disableAutoEffect(e:Event):void {
-            removeEventListener(Event.ENTER_FRAME, autoRunEffect);
+//            removeEventListener(Event.ENTER_FRAME, autoRunEffect);
 			clearInterval(autoInterval);
-			stage.removeEventListener(MouseEvent.MOUSE_OVER,disableAutoEffect);
+			tween1.kill();
+			tween2.kill(); 
+			tween3.kill();
+			mcBg.removeEventListener(MouseEvent.MOUSE_OVER,disableAutoEffect); 
+			mcRotationWarp.removeEventListener(MouseEvent.MOUSE_OVER,disableAutoEffect);
             addEvent();
         }
 		
 		/**
 		 * 重新开始游戏
 		 */
-		public function replayGame():void{
+		public function replayGame():void{ 
 			mcRotationInner.dipan.gotoAndStop(1);
 			//外层
 			for(var i = 0;i<12;i++){
