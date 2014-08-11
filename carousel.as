@@ -234,6 +234,13 @@
 					}
 				}
 				
+				//最后再次判断是否在指针处  防止转动时位置计算不准bug
+				//获取角度值
+				var angle:Number = getRotation(targetMc,centerPoint);
+				//获取需要旋转的角度
+				rotation2 += getTweenRotation(angle);
+				TweenMax.to(mcRotationMid, 0.2, {shortRotation:{rotation:rotation2},ease:Linear.easeNone});
+				
 			}});
 			
 			checkResults();
@@ -260,6 +267,12 @@
 						targetMc.gotoAndStop(1);
 					}
 				}
+				//最后再次判断是否在指针处  防止转动时位置计算不准bug
+				//获取角度值
+				var angle:Number = getRotation(targetMc,centerPoint);
+				//获取需要旋转的角度
+				rotation3 += getTweenRotation(angle);
+				TweenMax.to(mcRotationInner, 0.2, {shortRotation:{rotation:rotation3},ease:Linear.easeNone});
 				
 			}});
 			
@@ -344,7 +357,14 @@
 			TweenMax.to(mcRotationMid, 3, {rotation:rotation2});
 			TweenMax.to(mcRotationInner, 3, {rotation:rotation3});
 			
-			ExternalInterface.call("Pui.carousel.gameCompleteBefore",result);
+			
+			if (ExternalInterface.available){
+				try{ 
+					ExternalInterface.call("Pui.carousel.gameCompleteBefore",result);
+				}catch(e:Error){
+					
+				}
+			}
 			
 			TweenMax.to(pan, 0.5, {delay:3, scaleX:1, scaleY:1, alpha:1,rotation:-360,onComplete:function(){
 				if (ExternalInterface.available){
