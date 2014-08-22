@@ -306,7 +306,7 @@
 		private function getTweenRotation(rotation:Number):Number{
 			var _rotation:Number;
 			_rotation = rotation - 90;// - 360;
-			return _rotation;
+			return _rotation; 
 			
 		}
 		
